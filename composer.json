@@ -1,0 +1,34 @@
+{
+  "name": "intermezzon/asyncprocess",
+  "description": "Execute multiple processes asynchronously",
+  "keywords": [
+    "PHP",
+    "async",
+    "multiprocess"
+  ],
+  "homepage": "https://github.com/Intermezzon/asyncprocess",
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Daniel Önnerby"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+    	"Intermezzon\\AsyncProcess\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Intermezzon\\Tests\\": "tests/"
+    }
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^8",
+    "friendsofphp/php-cs-fixer": "^2.16"
+  },
+  "scripts": {
+    "test": "./vendor/bin/phpunit --bootstrap vendor/autoload.php --testdox tests"
+  }
+}
