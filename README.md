@@ -29,6 +29,9 @@ You may also monitor output, errors and handle ended process
 ```php
 $pool = new \Intermezzon\AsyncProcess\Pool();
 $pool->addCommand('my_program')
+	->started(function ($command)) {
+		echo "Process has started\n";
+	})
 	->output(function ($command, $output) {
 		echo "Process outputed:" . $output . "\n";
 		// Send stuff to process stdin
@@ -39,6 +42,7 @@ $pool->addCommand('my_program')
 	})
 	->ended(function ($command, $exitCode) {
 		echo "Process ended with exit code: " . $exitCode . "\n";
+		echo "Process took " . $command->totalTime . " seconds to execute.";
 	})
 	->execute();
 
