@@ -3,7 +3,7 @@
 Helper to start multiple processes simultaneously.
 
 Lets start with an example:
-```
+```php
 $pool = new \Intermezzon\AsyncProcess\Pool();
 $pool->addCommand('php -r "echo \"Start process.\"; sleep(2); echo \"Process ended\";"')
 	->execute();
@@ -13,7 +13,7 @@ $pool->wait();
 ```
 
 You may start multiple processes simultaneously
-```
+```php
 $pool = new \Intermezzon\AsyncProcess\Pool();
 $pool->addCommand('php -r "echo \"Start process 1.\n\"; sleep(2); echo \"Process 1 ended\n\";"')
 	->execute();
@@ -26,7 +26,7 @@ $pool->wait();
 
 ## Events
 You may also monitor output, errors and handle ended process
-```
+```php
 $pool = new \Intermezzon\AsyncProcess\Pool();
 $pool->addCommand('my_program')
 	->output(function ($command, $output) {
@@ -48,7 +48,7 @@ $pool->wait();
 
 ## Settings
 You may want to limit the number of simultaneously running processes so that you do not overload your system.
-```
+```php
 $pool = new \Intermezzon\AsyncProcess\Pool();
 $pool->setMaxProcesses(3);
 ```
