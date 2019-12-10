@@ -15,6 +15,9 @@ namespace Intermezzon\AsyncProcess
 		/* @var callable Callback when process has ended */
 		private $endedCallback = null;
 
+		/* @var callable Callback when process starts */
+		private $startedCallback = null;
+
 		/* @var callable Callback to continously monitor process */
 		private $tickCallback = null;
 
@@ -45,6 +48,12 @@ namespace Intermezzon\AsyncProcess
 		/* @var bool Has the process ended */
 		private $ended = false;
 
+		/* @var float */
+		private $startedAt = null;
+
+		/* @var float */
+		public $totalTime = 0.0;
+
 		/**
 		 * Constructor
 		 *
@@ -62,6 +71,7 @@ namespace Intermezzon\AsyncProcess
 			};
 			$this->endedCallback = function ($command, $returnCode) {
 			};
+			$this->startedCallback = function ($command) {};
 
 			$this->commandLine = $commandLine;
 			$this->pool = $pool;
@@ -114,6 +124,18 @@ namespace Intermezzon\AsyncProcess
 		public function ended($callback)
 		{
 			$this->endedCallback = $callback;
+			return $this;
+		}
+
+		/**
+		 * Event when process starts
+		 *
+		 * @param callable $callback
+		 * @return Command
+		 */
+		public function started($callback)
+		{
+			$this->startedCallback = $callback;
 			return $this;
 		}
 
@@ -174,6 +196,9 @@ namespace Intermezzon\AsyncProcess
 		 */
 		public function _end($returnCode)
 		{
+			// Calculate total time for this process
+			$this->totalTime = microtime(true) - $this->startedAt;
+			
 			$this->ended = true;
 			call_user_func_array($this->endedCallback, [$this, $returnCode]);
 			$this->pool->_cleanup();
@@ -190,6 +215,10 @@ namespace Intermezzon\AsyncProcess
 				1 => ['pipe', 'w'],
 				2 => ['pipe', 'w'],
 			];
+
+			$this->startedAt = microtime(true);
+
+			call_user_func_array($this->startedCallback, [$this]);
 
 			$this->process = proc_open($this->commandLine, $fileDesc, $this->pipes);
 
