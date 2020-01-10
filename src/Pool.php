@@ -39,23 +39,14 @@ namespace Intermezzon\AsyncProcess
 		public function addCommand($commandLine)
 		{
 			$command = new Command($commandLine, $this);
-			return $command;
-		}
-
-		/**
-		 * Add command to queue
-		 *
-		 * @param Command $command
-		 */
-		public function addCommandToQueue($command)
-		{
 			$this->queue[] = $command;
+			return $command;
 		}
 
 		/**
 		 * (private) Pull Commands from queue and start executing until maxProcesses is reached
 		 */
-		public function _executeCommands()
+		private function executeCommands()
 		{
 			while ($this->queue && (!$this->maxProcesses || count($this->runningCommands) < $this->maxProcesses)) {
 				$nextCommand = array_shift($this->queue);
@@ -67,8 +58,9 @@ namespace Intermezzon\AsyncProcess
 		/**
 		 * Wait for all processes in pool to be done
 		 */
-		public function wait()
+		public function executeAndWait()
 		{
+			$this->executeCommands();
 			while ($this->runningCommands || $this->queue) {
 				$somethingHappened = false;
 				foreach ($this->runningCommands as $command) {
@@ -76,7 +68,10 @@ namespace Intermezzon\AsyncProcess
 					$somethingHappened = $somethingHappened || $h;
 				}
 
-				if (!$somethingHappened) {
+				if ($somethingHappened) {
+					$this->cleanup();
+					$this->executeCommands();
+				} else {
 					usleep($this->tickSleep);
 				}
 			}
@@ -85,7 +80,7 @@ namespace Intermezzon\AsyncProcess
 		/**
 		 * (private) Cleanup will remove ended commands from runningCommands
 		 */
-		public function _cleanup()
+		private function cleanup()
 		{
 			for ($i = count($this->runningCommands) - 1; $i >= 0; $i--) {
 				if ($this->runningCommands[$i]->hasEnded()) {
