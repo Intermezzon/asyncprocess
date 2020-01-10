@@ -5,23 +5,20 @@ Helper to start multiple processes simultaneously.
 Lets start with an example:
 ```php
 $pool = new \Intermezzon\AsyncProcess\Pool();
-$pool->addCommand('php -r "echo \"Start process.\"; sleep(2); echo \"Process ended\";"')
-	->execute();
+$pool->addCommand('php -r "echo \"Start process.\"; sleep(2); echo \"Process ended\";"');
 
 // Wait for all commands to be done
-$pool->wait();
+$pool->executeAndWait();
 ```
 
 You may start multiple processes simultaneously
 ```php
 $pool = new \Intermezzon\AsyncProcess\Pool();
-$pool->addCommand('php -r "echo \"Start process 1.\n\"; sleep(2); echo \"Process 1 ended\n\";"')
-	->execute();
-$pool->addCommand('php -r "echo \"Start process 2.\n\"; sleep(1); echo \"Process 2 ended\n\";"')
-	->execute();
+$pool->addCommand('php -r "echo \"Start process 1.\n\"; sleep(2); echo \"Process 1 ended\n\";"');
+$pool->addCommand('php -r "echo \"Start process 2.\n\"; sleep(1); echo \"Process 2 ended\n\";"');
 
 // Wait for all commands to be done
-$pool->wait();
+$pool->executeAndWait();
 ```
 
 ## Events
@@ -43,11 +40,10 @@ $pool->addCommand('my_program')
 	->ended(function ($command, $exitCode) {
 		echo "Process ended with exit code: " . $exitCode . "\n";
 		echo "Process took " . $command->totalTime . " seconds to execute.";
-	})
-	->execute();
+	});
 
 // Wait for all commands to be done
-$pool->wait();
+$pool->executeAndWait();
 ```
 
 ## Settings

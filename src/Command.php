@@ -71,7 +71,8 @@ namespace Intermezzon\AsyncProcess
 			};
 			$this->endedCallback = function ($command, $returnCode) {
 			};
-			$this->startedCallback = function ($command) {};
+			$this->startedCallback = function ($command) {
+			};
 
 			$this->commandLine = $commandLine;
 			$this->pool = $pool;
@@ -152,23 +153,6 @@ namespace Intermezzon\AsyncProcess
 		}
 
 		/**
-		 * Execute the process. It's not guaranteed that this will start the process if there is a queue in the pool.
-		 * The execute command is used so that you may set all callbacks before execution starts like:
-		 * $pool->addCommand('somethingslow.sh')
-		 *  ->output(function ($cmd, $out) { echo $output; })
-		 *  ->execute();
-		 *
-		 * @return Command
-		 */
-		public function execute()
-		{
-			// Add to pool queue
-			$this->pool->addCommandToQueue($this);
-			$this->pool->_executeCommands();
-			return $this;
-		}
-
-		/**
 		 * Terminate the process
 		 *
 		 * @return Command
@@ -194,15 +178,13 @@ namespace Intermezzon\AsyncProcess
 		/**
 		 * (private) Called when process is ending for cleaning up the mess.
 		 */
-		public function _end($returnCode)
+		private function end($returnCode)
 		{
 			// Calculate total time for this process
 			$this->totalTime = microtime(true) - $this->startedAt;
 			
 			$this->ended = true;
 			call_user_func_array($this->endedCallback, [$this, $returnCode]);
-			$this->pool->_cleanup();
-			$this->pool->_executeCommands();
 		}
 
 		/**
@@ -211,9 +193,9 @@ namespace Intermezzon\AsyncProcess
 		public function _execute()
 		{
 			$fileDesc = [
-				0 => ['pipe', 'r'],
-				1 => ['pipe', 'w'],
-				2 => ['pipe', 'w'],
+				0 => ['pipe', 'r'], // stdin
+				1 => ['pipe', 'w'], // stdout
+				2 => ['pipe', 'w'], // stderr
 			];
 
 			$this->startedAt = microtime(true);
@@ -224,9 +206,9 @@ namespace Intermezzon\AsyncProcess
 
 			if (!is_resource($this->process)) {
 				call_user_func_array($this->errorCallback, [$this, 'Unable to start process: ' . $this->commandLine]);
-				$this->_end(-1);
+				$this->end(-1);
 			} else {
-				// Prepare stdin and stderr streams to be non blocking
+				// Prepare stdout and stderr streams to be non blocking
 				stream_set_blocking($this->pipes[1], false);
 				stream_set_blocking($this->pipes[2], false);
 			}
@@ -244,7 +226,7 @@ namespace Intermezzon\AsyncProcess
 			$somethingHasHappened = false;
 			$status = proc_get_status($this->process);
 			if (isset($this->pipes[1])) {
-				// Read stdin
+				// Read stdout
 				if ($output = stream_get_contents($this->pipes[1])) {
 					$somethingHasHappened = true;
 					call_user_func_array($this->outputCallback, [$this, $output]);
@@ -264,7 +246,7 @@ namespace Intermezzon\AsyncProcess
 					fclose($pipe);
 				}
 				proc_close($this->process);
-				$this->_end($status['exitcode']);
+				$this->end($status['exitcode']);
 			} else {
 				if ($this->tickCallback && ($now = microtime(true)) > $this->lastTickTime + $this->tickInterval) {
 					$this->lastTickTime = $now;

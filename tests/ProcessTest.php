@@ -16,22 +16,20 @@ final class ProcessTest extends TestCase
 			$pool
 		);
 
-		$command = $pool->addCommand('php -r "echo \"output\";"')
-			->execute();
+		$command = $pool->addCommand('php -r "echo \"output\";"');
 
 		$this->assertIsObject(
 			$command
 		);
 
-		$pool->wait();
+		$pool->executeAndWait();
 	}
 
 	public function testOutput(): void
 	{
 		$pool = new \Intermezzon\AsyncProcess\Pool();
-		$command = $pool->addCommand('php -r "echo \"START-\"; echo \"END\";"')
-			->execute();
-		$pool->wait();
+		$command = $pool->addCommand('php -r "echo \"START-\"; echo \"END\";"');
+		$pool->executeAndWait();
 
 		$this->assertSame(
 			$command->out,
@@ -43,9 +41,8 @@ final class ProcessTest extends TestCase
 	{
 		$test = $this;
 		$pool = new \Intermezzon\AsyncProcess\Pool();
-		$command = $pool->addCommand('>&2 echo "error"')
-			->execute();
-		$pool->wait();
+		$command = $pool->addCommand('>&2 echo "error"');
+		$pool->executeAndWait();
 
 		$this->assertSame(
 			trim($command->err),
@@ -58,13 +55,12 @@ final class ProcessTest extends TestCase
 		$pool = new \Intermezzon\AsyncProcess\Pool();
 
 		for ($i = 0; $i < 5; $i++) {
-			$command = $pool->addCommand('php -r "echo \"START-\"; sleep(1); echo \"END\";"')
-				->execute();
+			$command = $pool->addCommand('php -r "echo \"START-\"; sleep(1); echo \"END\";"');
 			$this->assertIsObject(
 				$command
 			);
 		}
-		$pool->wait();
+		$pool->executeAndWait();
 
 	}
 
@@ -76,9 +72,8 @@ final class ProcessTest extends TestCase
 		$command = $pool->addCommand('exit 1')
 			->ended(function ($command, $rc) use (&$returnCode) {
 				$returnCode = $rc;
-			})
-			->execute();
-		$pool->wait();
+			});
+		$pool->executeAndWait();
 
 		$this->assertSame(
 			$returnCode,
